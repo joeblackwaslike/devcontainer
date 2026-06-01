@@ -1,0 +1,16 @@
+{
+  "id": "claude-code-extend",
+  "version": "1.0.0",
+  "name": "Claude Code Dev Environment (Extensible)",
+  "description": "Same as claude-code but with a Dockerfile stub for layering project-specific tools on top of ghcr.io/joeblackwaslike/devcontainer. Use when you need to add tools at image build time.",
+  "documentationURL": "https://github.com/joeblackwaslike/devcontainer",
+  "publisher": "joeblackwaslike",
+  "keywords": ["claude-code", "ai", "agents", "dockerfile", "extensible"],
+  "options": {
+    "containerName": {
+      "type": "string",
+      "description": "Name for the dev container (defaults to project directory name).",
+      "default": "my-project"
+    }
+  }
+}

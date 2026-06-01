@@ -1,6 +1,8 @@
 {
-  "name": "dev-claude",
-  "image": "ghcr.io/joeblackwaslike/devcontainer:latest",
+  "name": "${templateOption:containerName}",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
       "version": "latest",
@@ -30,7 +32,6 @@
         "ms-azuretools.vscode-containers",
         "ms-python.python",
         "ms-python.vscode-pylance",
-        "ms-vscode.makefile-tools",
         "ms-vscode.vscode-typescript-next",
         "ms-vscode-remote.remote-containers",
         "oven.bun-vscode",
@@ -54,8 +55,6 @@
     // Claude Code config (writable — Claude writes sessions, memory, cache)
     "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.claude.json,target=/home/vscode/.claude.json,type=bind,consistency=cached",
-    // OpenAI Codex CLI
-    "source=${localEnv:HOME}/.cpdex,target=/home/vscode/.codex,type=bind,consistency=cached",
     // Skills + agents (read-only — managed in ~/.agents on host)
     "source=${localEnv:HOME}/.agents,target=/home/vscode/.agents,type=bind,readonly,consistency=cached",
     // Shell / git identity (read-only)
@@ -67,10 +66,12 @@
     // via the /Users/joe → /home/vscode symlink added in the Dockerfile
     "source=${localEnv:HOME}/github/joeblackwaslike,target=/home/vscode/github/joeblackwaslike,type=bind,readonly,consistency=cached",
     // opencode (config + runtime data writable; install dir read-only)
-    "source=${localEnv:HOME}/.config/opencode,target=/home/vscode/.config/opencode,type=bind,readonly,consistency=cached",
-    "source=${localEnv:HOME}/.local/share/opencode,target=/home/vscode/.local/share/opencode,type=bind,readonly,consistency=cached",
+    "source=${localEnv:HOME}/.config/opencode,target=/home/vscode/.config/opencode,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.local/share/opencode,target=/home/vscode/.local/share/opencode,type=bind,consistency=cached",
     // Gemini CLI (writable — writes session history, settings, state)
     "source=${localEnv:HOME}/.gemini,target=/home/vscode/.gemini,type=bind,consistency=cached",
+    // OpenAI Codex CLI / openclaw (writable — writes memories, skills, session logs, state)
+    "source=${localEnv:HOME}/.codex,target=/home/vscode/.codex,type=bind,consistency=cached",
     // openclaw identity + workspace (writable — writes credentials, logs, workspace state)
     "source=${localEnv:HOME}/.openclaw,target=/home/vscode/.openclaw,type=bind,consistency=cached",
     // Docker socket (OrbStack on macOS)
@@ -86,9 +87,7 @@
     // OpenAI / Codex
     "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY}",
     "OPENAI_ORG_ID": "${localEnv:OPENAI_ORG_ID}",
-    // 1Password CLI — no mountable socket on this host; use service account token instead.
-    // Generate one at https://developer.1password.com/docs/service-accounts/
-    // then export OP_SERVICE_ACCOUNT_TOKEN in your shell before opening the container.
+    // 1Password CLI — service account token (no socket on macOS host)
     "OP_SERVICE_ACCOUNT_TOKEN": "${localEnv:OP_SERVICE_ACCOUNT_TOKEN}",
     // MCP server API keys
     "CONTEXT7_API_KEY": "${localEnv:CONTEXT7_API_KEY}",

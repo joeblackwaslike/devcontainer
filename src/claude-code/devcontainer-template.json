@@ -1,0 +1,16 @@
+{
+  "id": "claude-code",
+  "version": "1.0.0",
+  "name": "Claude Code Dev Environment",
+  "description": "Full multi-language toolchain (Python, Node, Go, Rust, Ruby, Bun, Deno) with Claude Code, Gemini CLI, Codex CLI, beads task manager, and host identity passthrough. Uses the pre-built ghcr.io/joeblackwaslike/devcontainer image.",
+  "documentationURL": "https://github.com/joeblackwaslike/devcontainer",
+  "publisher": "joeblackwaslike",
+  "keywords": ["claude-code", "ai", "agents", "python", "node", "typescript", "rust", "go"],
+  "options": {
+    "containerName": {
+      "type": "string",
+      "description": "Name for the dev container (defaults to project directory name).",
+      "default": "my-project"
+    }
+  }
+}

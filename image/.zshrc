@@ -112,19 +112,30 @@ fi
 export MANPATH="/usr/local/man:$MANPATH"
 export LANG=en_US.UTF-8
 
-# init Homebrew
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv bash)"
+# moor pager (mirrors local macOS settings)
+if command -v moor >/dev/null 2>&1; then
+    export MOOR='-no-clear-on-exit -quit-if-one-screen -reformat -tab-size 4'
+    export PAGER=moor
+    export MANPAGER=moor
+fi
 
-# Claude Code: activate tool search tool for preventing MCP server tools from using up all the context
+# Claude Code
 export ENABLE_EXPERIMENTAL_MCP_CLI=true
+export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+
+# in-container claude runs without permission prompts
+alias claude='claude --dangerously-skip-permissions'
 
 # opencode
 export OPENCODE_AGENT_SKILLS_SUPERPOWERS_MODE=true
 
 if command -v eza >/dev/null 2>&1; then
-    # ls via eza
     alias ls='eza --long --all -g --git --sort name --group --group-directories-first --icons'
 fi
+
+# fzf key bindings + completion
+[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]  && source /usr/share/doc/fzf/examples/key-bindings.zsh
+[ -f /usr/share/doc/fzf/examples/completion.zsh ]     && source /usr/share/doc/fzf/examples/completion.zsh
 
 # zsh shortcuts
 alias reload='source ~/.zshrc'
@@ -133,23 +144,19 @@ alias reload='source ~/.zshrc'
 alias pn=pnpm
 
 if [[ -o interactive ]]; then
-    # Oh My Posh configuration
     eval "$(oh-my-posh init zsh --config ~/.mytheme.omp.yaml)"
 fi
 
 set -aU path
-# path=(/home/vscode/.volta/bin "$path")
 
+# source optional runtime env files installed by asdf
 set -aU includes
 includes=(
-    /home/vscode/.asdf/installs/rust/stable/env
-    /home/vscode/.asdf/installs/gcloud/*.0.0/path.zsh.inc
-    /home/vscode/.asdf/installs/gcloud/*.0.0/completion.zsh.inc
+    "${ASDF_DATA_DIR:-/home/vscode/.asdf}/installs/rust/stable/env"
+    "${ASDF_DATA_DIR:-/home/vscode/.asdf}/installs/gcloud/"*".0.0/path.zsh.inc"
+    "${ASDF_DATA_DIR:-/home/vscode/.asdf}/installs/gcloud/"*".0.0/completion.zsh.inc"
 )
 
 for file in $includes; do
-    if [[ -f $file ]]; then
-        . $file
-    fi
+    [[ -f $file ]] && . $file
 done
-

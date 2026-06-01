@@ -66,6 +66,12 @@ just publish-templates  # Publish src/ templates to GHCR (requires CR_PAT)
 
 ---
 
+## Project Skill activations
+
+whenever working with devcontainers be sure to activate the agent-skills:devcontainers skill.
+
+---
+
 ## How to make changes
 
 | What you want to change | Where to edit |

@@ -71,7 +71,7 @@ fi
 
 if ! command -v devcontainer >/dev/null 2>&1; then
     echo "error: 'devcontainer' CLI not found" >&2
-    echo "  Install with: npm install -g @devcontainers/cli" >&2
+    echo "  Install with: bun add -g @devcontainers/cli" >&2
     exit 1
 fi
 

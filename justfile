@@ -24,6 +24,11 @@ shell:
 init target=".":
     bash scripts/install.sh {{target}}
 
+# Run smoke tests against the local image (goss)
+test: build
+    docker run --rm -v "$(pwd)/tests/goss.yaml:/goss.yaml:ro" {{local_image}} \
+        goss validate --format documentation --color
+
 # Publish templates to GHCR (requires CR_PAT env var)
 publish-templates:
     GITHUB_TOKEN="$CR_PAT" devcontainer templates publish \

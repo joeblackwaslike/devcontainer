@@ -5,7 +5,7 @@
     "ghcr.io/devcontainers/features/docker-in-docker:2": {
       "version": "latest",
       "enableNonRootDocker": "true",
-      "moby": true
+      "moby": false
     }
   },
   "customizations": {
@@ -72,10 +72,15 @@
     "source=${localEnv:HOME}/.codex,target=/home/vscode/.codex,type=bind,consistency=cached",
     // openclaw identity + workspace (writable — writes credentials, logs, workspace state)
     "source=${localEnv:HOME}/.openclaw,target=/home/vscode/.openclaw,type=bind,consistency=cached",
+    // Bun + pnpm caches (read-write) -- shared with the host so installs are warm in the container
+    "source=${localEnv:HOME}/.bun/install/cache,target=/home/vscode/.bun/install/cache,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/Library/pnpm/store,target=/home/vscode/.local/share/pnpm/store,type=bind,consistency=cached",
     // Docker socket (OrbStack on macOS)
     "source=${localEnv:HOME}/.orbstack/run/docker.sock,target=/var/run/docker.sock,type=bind,consistency=cached"
   ],
   "remoteEnv": {
+    // Registry auth for pnpm/bun (reference it from .npmrc as ${NPM_TOKEN})
+    "NPM_TOKEN": "${localEnv:NPM_TOKEN}",
     // Anthropic / Claude
     "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
     "ANTHROPIC_MODEL": "${localEnv:ANTHROPIC_MODEL}",
@@ -98,6 +103,8 @@
     // opencode
     "OPENCODE_AGENT_SKILLS_SUPERPOWERS_MODE": "true"
   },
+  // Bind-mount sources must exist on the host or the container will not start
+  "initializeCommand": "mkdir -p \"$HOME/.bun/install/cache\" \"$HOME/Library/pnpm/store\"",
   "postCreateCommand": "/usr/local/share/devcontainer/scripts/setup.sh",
   "postAttachCommand": "/usr/local/share/devcontainer/scripts/discover-deps.sh"
 }

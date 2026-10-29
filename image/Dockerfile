@@ -10,6 +10,10 @@ ENV PIPX_HOME=/usr/local/pipx
 ENV PIPX_BIN_DIR=/usr/local/bin
 # add asdf shims to PATH so post-install RUN layers can call installed tools
 ENV PATH="/home/vscode/.asdf/shims:/home/vscode/.asdf/bin:${PATH}"
+# set HOME so asdf shims resolve .tool-versions from /home/vscode during build
+ENV HOME=/home/vscode
+# keep the bun cache under $HOME so the host cache mount (see devcontainer.json) lines up
+ENV BUN_INSTALL_CACHE_DIR=/home/vscode/.bun/install/cache
 
 RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
@@ -50,7 +54,7 @@ RUN curl -sS https://downloads.1password.com/linux/keys/1password.asc \
 # ── asdf runtime manager ─────────────────────────────────────────────────────
 
 # architecture-aware binary download
-RUN ASDF_ARCH=$(case "$(uname -m)" in aarch64|arm64) echo arm64;; *) echo amd64;; esac) && \
+RUN ASDF_ARCH=$(case "$(uname -m)" in aarch64|arm64) echo arm64;; *) echo x86_64;; esac) && \
     curl -sSL \
       "https://github.com/asdf-vm/asdf/releases/download/v0.18.1/asdf-v0.18.1-linux-${ASDF_ARCH}.tar.gz" \
       -o /tmp/asdf.tar.gz && \
@@ -60,14 +64,17 @@ RUN ASDF_ARCH=$(case "$(uname -m)" in aarch64|arm64) echo arm64;; *) echo amd64;
 
 # ── Language runtimes (one layer per runtime for cache granularity) ──────────
 
-RUN asdf plugin add python && asdf install python latest:3
-RUN asdf plugin add nodejs && asdf install nodejs lts
+RUN asdf plugin add python && asdf install python latest:3 && \
+    version=$(asdf latest python 3) && echo "python $version" > /home/vscode/.tool-versions
+# select node globally right away: plugins that shell out to npm (pnpm, yarn) fail through an unset shim
+RUN asdf plugin add nodejs && asdf install nodejs lts && \
+    asdf set -u nodejs "$(asdf list nodejs | tr -d ' *' | grep -v '^$' | tail -1)"
 RUN asdf plugin add ruby  && asdf install ruby  latest:4
 RUN asdf plugin add golang https://github.com/asdf-community/asdf-golang.git && \
     asdf install golang latest:1
 RUN asdf plugin add rust       && asdf install rust       stable
 RUN asdf plugin add bun        && asdf install bun        latest:1
-RUN asdf plugin add pnpm       && asdf install pnpm       latest:10
+RUN asdf plugin add pnpm       && asdf install pnpm       latest:11
 RUN asdf plugin add deno       && asdf install deno       latest
 RUN asdf plugin add awscli     && asdf install awscli     latest:2
 RUN asdf plugin add gcloud     && asdf install gcloud     latest
@@ -89,14 +96,15 @@ RUN for plugin in python nodejs ruby golang rust bun pnpm deno awscli gcloud pip
 
 # Rust/cargo tools → /usr/local/bin via CARGO_INSTALL_ROOT so they're globally accessible
 RUN . "$ASDF_DATA_DIR/installs/rust/stable/env" && \
+    export RUSTUP_HOME="$ASDF_DATA_DIR/installs/rust/stable" \
+           CARGO_HOME="$ASDF_DATA_DIR/installs/rust/stable" && \
     CARGO_INSTALL_ROOT=/usr/local cargo install \
       diskus \
       du-dust \
-      eza \
       hyperfine \
       procs \
-      sad \
-      git-delta
+      git-delta && \
+    CARGO_INSTALL_ROOT=/usr/local cargo install --locked eza
 
 # npm globals — reshim after so asdf shims are created for installed CLIs
 RUN npm install -g \
@@ -106,11 +114,11 @@ RUN npm install -g \
     tsx && \
     asdf reshim nodejs
 
-# Go tools → /usr/local/bin via GOPATH
-RUN GOPATH=/usr/local go install github.com/steveyegge/beads/cmd/bd@latest && \
-    GOPATH=/usr/local go install golang.org/x/tools/cmd/stringer@latest && \
-    GOPATH=/usr/local go install github.com/gastownhall/gastown/cmd/gt@latest && \
-    GOPATH=/usr/local go install github.com/walles/moor/v2/cmd/moor@latest
+# Go tools → /usr/local/bin via GOBIN (GOBIN overrides asdf's GOPATH)
+RUN GOBIN=/usr/local/bin go install github.com/steveyegge/beads/cmd/bd@latest && \
+    GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/stringer@latest && \
+    GOBIN=/usr/local/bin go install github.com/steveyegge/gastown/cmd/gt@latest && \
+    GOBIN=/usr/local/bin go install github.com/walles/moor/v2/cmd/moor@latest
 
 # ── Install-script tools ─────────────────────────────────────────────────────
 
@@ -139,8 +147,11 @@ RUN set -eux && \
     # glow — markdown renderer for the terminal
     GLW=$(curl -fsSL https://api.github.com/repos/charmbracelet/glow/releases/latest \
           | jq -r '.tag_name | ltrimstr("v")') && \
+    GLOW_DIR=$(mktemp -d) && \
     curl -fsSL "https://github.com/charmbracelet/glow/releases/download/v${GLW}/glow_${GLW}_Linux_${GARCH}.tar.gz" \
-      | tar -xz -C /usr/local/bin glow && \
+      | tar -xz -C "$GLOW_DIR" && \
+    find "$GLOW_DIR" -name 'glow' -type f -exec install -m755 {} /usr/local/bin/glow \; && \
+    rm -rf "$GLOW_DIR" && \
     \
     # mkcert — local CA and TLS certificate generation
     MKV=$(curl -fsSL https://api.github.com/repos/FiloSottile/mkcert/releases/latest \
@@ -157,6 +168,12 @@ RUN set -eux && \
     find "$STDIR" -name 'step' -type f -exec install -m755 {} /usr/local/bin/step \; && \
     rm -rf "$STDIR"
 
+# goss — server validation / image smoke testing
+RUN GOSS_ARCH=$(case "$(uname -m)" in aarch64|arm64) echo arm64;; *) echo x86_64;; esac) && \
+    GOSS_TAG=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/goss-org/goss/releases/latest | sed 's|.*/||') && \
+    curl -fsSL "https://github.com/goss-org/goss/releases/download/${GOSS_TAG}/goss_${GOSS_TAG#v}_linux_${GOSS_ARCH}.tar.gz" \
+      | tar -xz -C /usr/local/bin goss && chmod +rx /usr/local/bin/goss
+
 # ── Python tools (pipx) ──────────────────────────────────────────────────────
 
 # PIPX_BIN_DIR=/usr/local/bin routes executables to system PATH
@@ -172,4 +189,7 @@ RUN chmod +x /usr/local/share/devcontainer/scripts/*.sh
 # ── Ownership fix ────────────────────────────────────────────────────────────
 
 # Make the vscode user own all asdf data so runtime tool additions work
-RUN chown -R vscode:vscode /home/vscode/.asdf /home/vscode/.tool-versions 2>/dev/null || true
+# Pre-create bind-mount parents (bun cache, pnpm store) so they are vscode-owned, not root-owned
+RUN mkdir -p /home/vscode/.bun/install/cache /home/vscode/.local/share/pnpm/store
+RUN chown -R vscode:vscode /home/vscode/.asdf /home/vscode/.tool-versions \
+        /home/vscode/.bun /home/vscode/.local 2>/dev/null || true

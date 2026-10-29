@@ -15,11 +15,7 @@ Detection runs in this exact order. Within each language, the first matching fil
 
 | Signal file | Tool invoked | Notes |
 |---|---|---|
-| `pnpm-lock.yaml` | `pnpm install` | Respects workspace root |
-| `bun.lockb` | `bun install` | |
-| `yarn.lock` | `yarn install` | |
-| `package-lock.json` | `npm ci` | Strict reproducible install |
-| `package.json` (no lock) | `npm install` | Creates a lock file |
+| `package.json` | `pnpm install` | Always pnpm. Without a `pnpm-lock.yaml` it prints a hint to run `bunx spinup-ts update . --yes`; pnpm imports an existing npm/yarn lockfile |
 | `pyproject.toml` | `uv sync` | Falls back silently if uv fails |
 | `requirements.txt` | `uv pip install -r` | Falls back to pip if uv unavailable |
 | `Cargo.toml` | `cargo fetch` | Pre-fetches crates; does not build |

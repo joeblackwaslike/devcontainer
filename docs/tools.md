@@ -71,7 +71,7 @@ Version specs use `latest:N` to pin major while tracking minor/patch updates.
 | golang | `latest:1` | `go` | Go 1.x |
 | rust | `stable` | `cargo`, `rustc`, `rustup` | Stable toolchain |
 | bun | `latest:1` | `bun`, `bunx` | JS runtime / bundler |
-| pnpm | `latest:10` | `pnpm`, `pnpx` | pnpm 10.x |
+| pnpm | `latest:11` | `pnpm`, `pnpx` | pnpm 11.x |
 | deno | `latest` | `deno` | Deno runtime |
 | awscli | `latest:2` | `aws` | AWS CLI v2 |
 | gcloud | `latest` | `gcloud`, `gsutil` | Google Cloud SDK |
@@ -218,3 +218,4 @@ hooks — no per-project script copying required.
 | 2026-05-21 | Added mounts: ~/.gemini (Gemini CLI), ~/.codex (Codex/openclaw), ~/.openclaw (openclaw workspace) |
 | 2026-05-21 | Added OP_SERVICE_ACCOUNT_TOKEN to remoteEnv (1Password CLI — no socket on this host) |
 | 2026-06-01 | Restructured repo: build context moved to `image/`, scripts baked into image, init-project.sh replaced by Dev Container Templates in `src/` |
+| 2026-10-29 | pnpm asdf plugin bumped to `latest:11`; added `NPM_TOKEN` passthrough and bind mounts for the bun cache (`~/.bun/install/cache`) and pnpm store (`~/Library/pnpm/store`) with an `initializeCommand` that creates them; `discover-deps.sh` always uses pnpm; templates use `moby: false` (base image is Ubuntu 26.04 "resolute", which has no Moby packages) |

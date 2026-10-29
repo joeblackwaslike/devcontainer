@@ -3,7 +3,7 @@
 # Automatically installs repo-specific dependencies on every container attach.
 #
 # Detection order (first match wins per language):
-#   JS/TS : pnpm-lock.yaml → bun.lockb → yarn.lock → package-lock.json → package.json
+#   JS/TS : always pnpm (legacy npm/yarn/bun lockfiles are imported and flagged for migration)
 #   Python: pyproject.toml (uv sync) → requirements.txt (uv pip install)
 #   Rust  : Cargo.toml (cargo fetch)
 #   Go    : go.mod (go mod download)
@@ -26,21 +26,12 @@ cd "$WORKSPACE"
 echo "==> discover-deps: $WORKSPACE"
 
 # ── JavaScript / TypeScript ───────────────────────────────────────────────────
-if [ -f pnpm-lock.yaml ]; then
+if [ -f package.json ]; then
+    if [ ! -f pnpm-lock.yaml ]; then
+        echo "    note: no pnpm-lock.yaml -- run 'bunx spinup-ts update . --yes' to migrate to pnpm + Bun"
+    fi
     echo "    pnpm install"
     pnpm install
-elif [ -f bun.lockb ]; then
-    echo "    bun install"
-    bun install
-elif [ -f yarn.lock ]; then
-    echo "    yarn install"
-    yarn install
-elif [ -f package-lock.json ]; then
-    echo "    npm ci"
-    npm ci
-elif [ -f package.json ]; then
-    echo "    npm install"
-    npm install
 fi
 
 # ── Python ────────────────────────────────────────────────────────────────────

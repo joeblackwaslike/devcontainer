@@ -5,6 +5,6 @@
 # See docs/discover-deps.md for documentation and examples.
 #
 # Examples:
-#   npm install -g @myorg/internal-cli
+#   bun add -g @myorg/internal-cli
 #   psql -U postgres -c "CREATE DATABASE myapp;" 2>/dev/null || true
 #   export MY_PROJECT_ENV=devcontainer

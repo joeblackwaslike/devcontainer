@@ -1,0 +1,240 @@
+# Devcontainer image smoke tests — run with: just test
+
+user:
+  vscode:
+    exists: true
+    uid: 1000
+
+file:
+  # lifecycle scripts
+  /usr/local/share/devcontainer/scripts/setup.sh:
+    exists: true
+    filetype: file
+    mode: "0755"
+  /usr/local/share/devcontainer/scripts/discover-deps.sh:
+    exists: true
+    filetype: file
+    mode: "0755"
+  # shell config
+  /home/vscode/.zshrc:
+    exists: true
+    filetype: file
+  /home/vscode/.mytheme.omp.yaml:
+    exists: true
+    filetype: file
+  # macOS path compatibility symlink
+  /Users/joe:
+    exists: true
+    filetype: symlink
+    linked-to: /home/vscode
+  # asdf data directory
+  /home/vscode/.asdf:
+    exists: true
+    filetype: directory
+
+command:
+  # ── asdf runtimes ────────────────────────────────────────────
+  python3 --version:
+    exit-status: 0
+    stdout:
+      - "/Python 3/"
+    title: "runtime: python3"
+  node --version:
+    exit-status: 0
+    title: "runtime: node"
+  ruby --version:
+    exit-status: 0
+    title: "runtime: ruby"
+  go version:
+    exit-status: 0
+    title: "runtime: go"
+  rustc --version:
+    exit-status: 0
+    title: "runtime: rustc"
+  bun --version:
+    exit-status: 0
+    title: "runtime: bun"
+  deno --version:
+    exit-status: 0
+    title: "runtime: deno"
+
+  # ── JS toolchain: pnpm + bun primary; npm, yarn, tsx kept available ──────
+  pnpm --version:
+    exit-status: 0
+    stdout:
+      - "/^11\\./"
+    title: "package manager: pnpm 11"
+  bunx --version:
+    exit-status: 0
+    title: "runtime: bunx"
+  npm --version:
+    exit-status: 0
+    title: "tool: npm"
+  yarn --version:
+    exit-status: 0
+    title: "tool: yarn"
+  tsx --version:
+    exit-status: 0
+    title: "tool: tsx"
+  claude --version:
+    exit-status: 0
+    title: "global: claude"
+  devcontainer --version:
+    exit-status: 0
+    title: "global: devcontainer"
+  gemini --version:
+    exit-status: 0
+    title: "global: gemini"
+
+  # ── cargo tools ─────────────────────────────────────────────
+  diskus --version:
+    exit-status: 0
+    title: "cargo: diskus"
+  dust --version:
+    exit-status: 0
+    title: "cargo: dust"
+  eza --version:
+    exit-status: 0
+    title: "cargo: eza"
+  hyperfine --version:
+    exit-status: 0
+    title: "cargo: hyperfine"
+  procs --version:
+    exit-status: 0
+    title: "cargo: procs"
+  delta --version:
+    exit-status: 0
+    title: "cargo: delta"
+
+  # ── go tools ────────────────────────────────────────────────
+  command -v bd:
+    exit-status: 0
+    title: "go: bd"
+  command -v stringer:
+    exit-status: 0
+    title: "go: stringer"
+  command -v gt:
+    exit-status: 0
+    title: "go: gt"
+  moor --version:
+    exit-status: 0
+    title: "go: moor"
+
+  # ── github release binaries ─────────────────────────────────
+  dolt version:
+    exit-status: 0
+    title: "release: dolt"
+  glow --version:
+    exit-status: 0
+    title: "release: glow"
+  command -v mkcert:
+    exit-status: 0
+    title: "release: mkcert"
+  step version:
+    exit-status: 0
+    title: "release: step"
+
+  # ── pipx tools ──────────────────────────────────────────────
+  sqlfluff version:
+    exit-status: 0
+    title: "pipx: sqlfluff"
+  csvlook --version:
+    exit-status: 0
+    title: "pipx: csvlook"
+
+  # ── install-script tools ────────────────────────────────────
+  oh-my-posh version:
+    exit-status: 0
+    title: "script: oh-my-posh"
+  uv --version:
+    exit-status: 0
+    title: "script: uv"
+  volta --version:
+    exit-status: 0
+    title: "script: volta"
+  op --version:
+    exit-status: 0
+    title: "script: op"
+  goss --version:
+    exit-status: 0
+    title: "script: goss"
+
+  # ── apt packages (spot check) ───────────────────────────────
+  git --version:
+    exit-status: 0
+    title: "apt: git"
+  rg --version:
+    exit-status: 0
+    title: "apt: ripgrep"
+  fzf --version:
+    exit-status: 0
+    title: "apt: fzf"
+  batcat --version:
+    exit-status: 0
+    title: "apt: bat"
+  nvim --version:
+    exit-status: 0
+    title: "apt: neovim"
+  tmux -V:
+    exit-status: 0
+    title: "apt: tmux"
+  curl --version:
+    exit-status: 0
+    title: "apt: curl"
+  wget --version:
+    exit-status: 0
+    title: "apt: wget"
+  http --version:
+    exit-status: 0
+    title: "apt: httpie"
+  shellcheck --version:
+    exit-status: 0
+    title: "apt: shellcheck"
+  shfmt --version:
+    exit-status: 0
+    title: "apt: shfmt"
+  jq --version:
+    exit-status: 0
+    title: "apt: jq"
+  yq --version:
+    exit-status: 0
+    title: "apt: yq"
+  psql --version:
+    exit-status: 0
+    title: "apt: psql"
+  redis-server --version:
+    exit-status: 0
+    title: "apt: redis-server"
+  sqlite3 --version:
+    exit-status: 0
+    title: "apt: sqlite3"
+  dot -V:
+    exit-status: 0
+    title: "apt: graphviz"
+  convert --version:
+    exit-status: 0
+    title: "apt: imagemagick"
+  tesseract --version:
+    exit-status: 0
+    title: "apt: tesseract"
+  command -v pdftotext:
+    exit-status: 0
+    title: "apt: pdftotext"
+  pgcli --version:
+    exit-status: 0
+    title: "apt: pgcli"
+  command -v zsh:
+    exit-status: 0
+    title: "apt: zsh"
+
+  # ── environment ─────────────────────────────────────────────
+  bash -c 'echo "$ASDF_DATA_DIR"':
+    exit-status: 0
+    stdout:
+      - "/home/vscode/.asdf"
+    title: "env: ASDF_DATA_DIR"
+  bash -c 'echo "$PATH"':
+    exit-status: 0
+    stdout:
+      - "/home/vscode/.asdf/shims"
+    title: "env: PATH has asdf shims"

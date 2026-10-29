@@ -135,6 +135,8 @@ All mounts are read-only unless the tool needs to write state to the path.
 | `~/.gemini` | read-write | Gemini CLI state |
 | `~/.codex` | read-write | Codex CLI state |
 | `~/.openclaw` | read-write | openclaw state |
+| `~/.bun/install/cache` | read-write | Bun package cache (created by `initializeCommand`) |
+| `~/Library/pnpm/store` | read-write | pnpm content-addressable store (created by `initializeCommand`) |
 | `~/.config/opencode` | read-write | opencode settings |
 | `~/.local/share/opencode` | read-write | opencode runtime data |
 | `~/.orbstack/run/docker.sock` | read-write | Docker socket |
